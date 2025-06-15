@@ -27,10 +27,11 @@ export default function Navbar() {
       </nav>
       <button
         onClick={() => router.push("/auth")}
-        className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition font-bold"
-      >
+        className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition font-bold cursor-pointer"
+        >
         ⚡Login / Registro
       </button>
+
     </header>
   );
 }
