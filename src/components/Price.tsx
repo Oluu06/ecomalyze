@@ -22,17 +22,12 @@ const checklistData = {
         "Etiquetas H1 mínimas",
         "URLs amigables básicas",
       ],
-      "Velocidad y rendimiento básico": [
-        "Tiempo de carga aceptable",
-      ],
+      "Velocidad y rendimiento básico": ["Tiempo de carga aceptable"],
       "Experiencia de Usuario": [
         "Navegación funcional pero básica",
         "Botones esenciales visibles",
       ],
-      "Seguridad y confianza": [
-        "Certificado SSL activo",
-        "Políticas legales visibles",
-      ],
+      "Seguridad y confianza": ["Certificado SSL activo", "Políticas legales visibles"],
     },
   },
 
@@ -176,17 +171,23 @@ export default function FeaturesSection() {
             {(["gratis", "pro", "agencia"] as const).map((plan) => {
               const data = checklistData[plan];
               const isPro = plan === "pro";
+
               return (
                 <motion.div
                   key={plan}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: plan === "gratis" ? 0.1 : plan === "pro" ? 0.2 : 0.3 }}
-                  className={`rounded-2xl shadow-md p-8 flex flex-col items-center ${
-                    isPro
-                      ? "bg-blue-600 text-white shadow-lg transform scale-[1.03]"
-                      : "bg-white text-gray-900"
+                  transition={{
+                    duration: 0.5,
+                    delay: plan === "gratis" ? 0.1 : plan === "pro" ? 0.2 : 0.3,
+                  }}
+                  whileHover={{
+                    scale: 1.05,
+                    boxShadow: "0 12px 24px rgba(0, 0, 0, 0.15)",
+                  }}
+                  className={`rounded-2xl p-8 flex flex-col items-center cursor-pointer transition-transform transition-shadow duration-300 ease-in-out ${
+                    isPro ? "bg-blue-600 text-white shadow-lg" : "bg-white text-gray-900 shadow-md"
                   }`}
                 >
                   <h3 className={`text-xl font-bold mb-2 ${isPro ? "text-white" : "text-blue-600"}`}>
@@ -196,11 +197,7 @@ export default function FeaturesSection() {
                     {plan === "gratis" ? "0€" : plan === "pro" ? "19€/mes" : "49€/mes"}
                   </p>
 
-                  <ul
-                    className={`list-disc list-inside text-sm space-y-1 mt-4 ${
-                      isPro ? "text-white" : "text-gray-700"
-                    }`}
-                  >
+                  <ul className={`list-disc list-inside text-sm space-y-1 mt-4 ${isPro ? "text-white" : "text-gray-700"}`}>
                     {data.resumen.map((item, i) => (
                       <li key={i}>{item}</li>
                     ))}
@@ -267,32 +264,13 @@ export default function FeaturesSection() {
                 >
                   <button
                     onClick={() => setShowMore(null)}
-                    className="absolute top-6 right-6 text-gray-400 hover:text-gray-700 transition focus:outline-none focus:ring-2 focus:ring-blue-600 rounded-full p-2"
+                    className="absolute top-6 right-6 text-gray-400 hover:text-gray-700 transition focus:outline-none focus:ring-2 focus:ring-blue-600 rounded"
                     aria-label="Cerrar modal"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    ✕
                   </button>
-
-                  <h3 className="text-3xl font-bold mb-6 capitalize text-blue-600">
-                    {showMore.charAt(0).toUpperCase() + showMore.slice(1)}
-                  </h3>
-
+                  <h3 className="text-2xl font-bold mb-6 text-blue-600 capitalize">{showMore}</h3>
                   <Checklist plan={showMore} />
-
-                  <button
-                    className="mt-10 bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition font-semibold block mx-auto focus:outline-none focus:ring-4 focus:ring-blue-400"
-                    onClick={() => setShowMore(null)}
-                  >
-                    Cerrar
-                  </button>
                 </motion.div>
               </motion.div>
             )}

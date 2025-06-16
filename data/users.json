@@ -1,0 +1,9 @@
+[
+  {
+    "email": "test@test.com",
+    "password": "$2b$10$tPajC1E/ny9ynuEAczDieuutgkbzCrPqfueET02Mv7TBCDqMr0bmu",
+    "fullName": "test",
+    "phone": "",
+    "birthDate": "2000-02-03"
+  }
+]

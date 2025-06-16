@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "../context/UserContext";
+import { registerUser, loginUser } from "../services/auth";
 
 export default function AuthPage() {
   const router = useRouter();
-  const { setUser } = useUser();
+  const { login } = useUser();
 
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -17,36 +18,22 @@ export default function AuthPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
 
-  const [users, setUsers] = useState<
-    { email: string; password: string; fullName: string; phone?: string; birthDate: string }[]
-  >([]);
-
-  useEffect(() => {
-    const savedUsers = localStorage.getItem("users");
-    if (savedUsers) setUsers(JSON.parse(savedUsers));
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("users", JSON.stringify(users));
-  }, [users]);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMessage("");
 
     if (isLogin) {
       if (!email || !password) {
         setMessage("Por favor, completa email y contraseña.");
         return;
       }
-
-      const user = users.find((u) => u.email === email && u.password === password);
-      if (user) {
-        setMessage("Inicio de sesión exitoso.");
-        localStorage.setItem("loggedUser", JSON.stringify(user));
-        setUser(user);
+      try {
+        const data = await loginUser(email, password);
+        localStorage.setItem("token", data.token);
+        login(data.user);
         router.push("/dashboard");
-      } else {
-        setMessage("Credenciales incorrectas.");
+      } catch (error: any) {
+        setMessage(error.message);
       }
     } else {
       if (!fullName || !email || !password || !confirmPassword || !birthDate) {
@@ -59,22 +46,19 @@ export default function AuthPage() {
         return;
       }
 
-      if (users.some((u) => u.email === email)) {
-        setMessage("El email ya está registrado.");
-        return;
+      try {
+        await registerUser({ email, password, fullName, phone, birthDate });
+        setMessage("Registro exitoso, ya puedes iniciar sesión.");
+        setIsLogin(true);
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        setFullName("");
+        setPhone("");
+        setBirthDate("");
+      } catch (error: any) {
+        setMessage(error.message);
       }
-
-      const newUser = { email, password, fullName, phone, birthDate };
-      setUsers([...users, newUser]);
-      setMessage("Registro exitoso, ya puedes iniciar sesión.");
-      setIsLogin(true);
-
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
-      setFullName("");
-      setPhone("");
-      setBirthDate("");
     }
   };
 
@@ -164,13 +148,6 @@ export default function AuthPage() {
             {isLogin ? "Regístrate" : "Inicia sesión"}
           </button>
         </p>
-        <button
-          onClick={() => router.push("/")}
-          className="mt-6 w-full text-center bg-gray-200 text-black px-4 py-2 rounded-xl hover:bg-gray-300 transition font-semibold cursor-pointer"
-          >
-          Volver al inicio
-          </button>
-
       </div>
     </div>
   );

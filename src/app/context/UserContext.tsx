@@ -1,33 +1,35 @@
 "use client";
 
+
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { useRouter } from "next/navigation";
 
 interface User {
   email: string;
-  fullName: string;
-  // Otros campos si los tienes
+  fullName?: string;
 }
 
 interface UserContextType {
   user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  logout: () => void;  // Agregado logout aquí
+  login: (user: User) => void;
+  logout: () => void;
+  setUser: (user: User) => void;  // <-- agrega esta función aquí
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const router = useRouter();
 
-  function logout() {
-    setUser(null);        // Limpia el usuario
-    router.push("/auth"); // Cambia "/auth" por la ruta de tu login
-  }
+  const login = (userData: User) => {
+    setUser(userData);
+  };
+
+  const logout = () => {
+    setUser(null);
+  };
 
   return (
-    <UserContext.Provider value={{ user, setUser, logout }}>
+    <UserContext.Provider value={{ user, login, logout, setUser }}>
       {children}
     </UserContext.Provider>
   );

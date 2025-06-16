@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React, { ReactNode, useState, useRef, useEffect } from "react";
 import {
   FiMenu,
@@ -7,15 +8,14 @@ import {
   FiHome,
   FiBarChart2,
   FiSettings,
+  FiUser,
+  FiClipboard,
 } from "react-icons/fi";
-import { useUser, UserProvider } from "../context/UserContext";
+import { useUser } from "../context/UserContext";
+import { useRouter } from "next/navigation";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  return (
-    <UserProvider>
-      <LayoutInner>{children}</LayoutInner>
-    </UserProvider>
-  );
+  return <LayoutInner>{children}</LayoutInner>;
 }
 
 function LayoutInner({ children }: { children: ReactNode }) {
@@ -23,8 +23,24 @@ function LayoutInner({ children }: { children: ReactNode }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const { user, logout } = useUser();
+  const router = useRouter();
 
-  // Cerrar el menú de usuario si se hace clic fuera
+  // Redirigir a login si no hay usuario
+  useEffect(() => {
+    if (!user) {
+      router.push("/login");
+    }
+  }, [user, router]);
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+
+  if (!user) return null; // No mostrar nada hasta que el user esté definido
+
+  const userName = user.fullName || user.email || "Usuario";
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -46,89 +62,105 @@ function LayoutInner({ children }: { children: ReactNode }) {
     };
   }, [userMenuOpen]);
 
-  const userName = user?.fullName || user?.email || "Usuario";
-
   return (
     <div className="flex h-screen bg-[#f5f7ff]">
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 bg-white w-20 flex flex-col items-center
-        border-r border-gray-200 transition-transform
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-        md:translate-x-0 md:static z-30`}
-      >
-        <div className="h-16 flex items-center justify-center w-full text-blue-600 text-3xl font-extrabold cursor-pointer select-none">
-          E
-        </div>
-
-        <nav className="flex flex-col mt-8 space-y-6">
-          <a
-            href="/dashboard"
-            className="flex flex-col items-center text-gray-600 hover:text-blue-600 transition text-xs font-semibold"
-            title="Dashboard"
-          >
-            <FiHome size={20} />
-            <span className="mt-1">Inicio</span>
-          </a>
-          <a
-            href="/dashboard/reports"
-            className="flex flex-col items-center text-gray-600 hover:text-blue-600 transition text-xs font-semibold"
-            title="Informes"
-          >
-            <FiBarChart2 size={20} />
-            <span className="mt-1">Informes</span>
-          </a>
-          <a
-            href="/dashboard/settings"
-            className="flex flex-col items-center text-gray-600 hover:text-blue-600 transition text-xs font-semibold"
-            title="Ajustes"
-          >
-            <FiSettings size={20} />
-            <span className="mt-1">Ajustes</span>
-          </a>
-        </nav>
-
-        <div className="flex-grow" />
-
-        <button
-          onClick={logout}
-          className="mb-6 text-gray-600 hover:text-red-600 transition"
-          aria-label="Cerrar sesión"
-          title="Cerrar sesión"
-          type="button"
+      {/* Sidebar visible solo si hay usuario */}
+      {user && (
+        <aside
+          className={`fixed inset-y-0 left-0 bg-white w-20 flex flex-col items-center
+          border-r border-gray-200 transition-transform
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0 md:static z-30`}
         >
-          <FiLogOut size={24} />
-        </button>
-      </aside>
+          <Link
+            href="/"
+            className="h-16 flex items-center justify-center w-full text-blue-600 text-3xl font-extrabold cursor-pointer select-none"
+          >
+            E
+          </Link>
 
-      {/* Contenido principal */}
+          <nav className="flex flex-col mt-8 space-y-6">
+            <Link
+              href="/dashboard"
+              className="flex flex-col items-center text-gray-600 hover:text-blue-600 transition text-xs font-semibold"
+              title="Inicio"
+            >
+              <FiHome size={20} />
+              <span className="mt-1">Inicio</span>
+            </Link>
+
+            <Link
+              href="/dashboard/reports"
+              className="flex flex-col items-center text-gray-600 hover:text-blue-600 transition text-xs font-semibold"
+              title="Informes"
+            >
+              <FiBarChart2 size={20} />
+              <span className="mt-1">Informes</span>
+            </Link>
+
+            <Link
+              href="/dashboard/plan"
+              className="flex flex-col items-center text-gray-600 hover:text-blue-600 transition text-xs font-semibold"
+              title="Plan"
+            >
+              <FiClipboard size={20} />
+              <span className="mt-1">Plan</span>
+            </Link>
+
+            <Link
+              href="/dashboard/settings"
+              className="flex flex-col items-center text-gray-600 hover:text-blue-600 transition text-xs font-semibold"
+              title="Ajustes"
+            >
+              <FiSettings size={20} />
+              <span className="mt-1">Ajustes</span>
+            </Link>
+          </nav>
+
+          <div className="flex-grow" />
+
+          <button
+            onClick={handleLogout}
+            className="mb-6 text-gray-600 hover:text-red-600 transition"
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+            type="button"
+          >
+            <FiLogOut size={24} />
+          </button>
+        </aside>
+      )}
+
+      {/* Main content */}
       <div className="flex flex-col flex-1 min-h-screen md:pl-20">
         <header className="flex items-center justify-between bg-white shadow px-6 py-4 sticky top-0 z-20">
+          {/* Botón menú (solo móvil) */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="md:hidden text-gray-600 hover:text-blue-600 focus:outline-none "
+            className="md:hidden text-gray-600 hover:text-blue-600 focus:outline-none"
             aria-label="Abrir menú lateral"
           >
             <FiMenu size={28} />
           </button>
 
-          <h1
-            className="text-xl font-bold text-blue-600 hidden md:block cursor-pointer"
-            onClick={() => (window.location.href = "/")}
-          >
-            Ecomalyze
-          </h1>
+          {/* Título centrado */}
+          <div className="flex-1 flex justify-center">
+            <h1 className="text-lg font-semibold text-gray-800">Panel de control</h1>
+          </div>
 
+          {/* Usuario */}
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="text-gray-700 font-semibold focus:outline-none flex items-center gap-2 cursor-pointer"
+              className="text-gray-700 font-medium focus:outline-none flex items-center gap-1 cursor-pointer hover:text-blue-600 transition"
               aria-haspopup="true"
               aria-expanded={userMenuOpen}
               aria-controls="user-menu"
               type="button"
+              style={{ outline: "none" }}
             >
-              Bienvenido, {userName}
+              <FiUser size={20} />
+              <span>{userName}</span>
               <svg
                 className={`w-4 h-4 transition-transform ${
                   userMenuOpen ? "rotate-180" : "rotate-0"
@@ -146,14 +178,17 @@ function LayoutInner({ children }: { children: ReactNode }) {
             {userMenuOpen && (
               <ul
                 id="user-menu"
-                className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow-lg py-1 text-gray-700 text-sm"
+                className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded shadow-lg py-1 text-gray-700 text-sm"
                 role="menu"
                 aria-label="Opciones de usuario"
               >
                 <li role="none">
                   <button
                     role="menuitem"
-                    onClick={() => alert("Perfil")}
+                    onClick={() => {
+                      router.push("/dashboard/profile");
+                      setUserMenuOpen(false);
+                    }}
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer"
                     type="button"
                   >
@@ -163,17 +198,7 @@ function LayoutInner({ children }: { children: ReactNode }) {
                 <li role="none">
                   <button
                     role="menuitem"
-                    onClick={() => alert("Configuración")}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                    type="button"
-                  >
-                    Configuración
-                  </button>
-                </li>
-                <li role="none">
-                  <button
-                    role="menuitem"
-                    onClick={logout}
+                    onClick={handleLogout}
                     className="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 cursor-pointer"
                     type="button"
                   >
